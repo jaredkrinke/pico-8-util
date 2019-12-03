@@ -52,6 +52,10 @@ function uint32.create_from_number(n)
     return uint32.create_raw(uint32_number_to_value(n))
 end
 
+function uint32.create_from_bytes(a, b, c, d)
+    return uint32.create_raw(bor(lshr(a, 16), bor(lshr(b, 8), bor(c, bor(shl(d, 8))))))
+end
+
 function uint32:set_number(n)
     return self:set_raw(uint32_number_to_value(n))
 end
@@ -234,6 +238,8 @@ equal(0x78, a)
 equal(0x56, b)
 equal(0x34, c)
 equal(0x12, d)
+
+equal(uint32.create_raw(0x1234.5678), uint32.create_from_bytes(uint32.create_raw(0x1234.5678):to_bytes()))
 
 printh("Tests passed: " .. passed .. "/" .. total)
 
