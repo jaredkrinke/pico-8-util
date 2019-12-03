@@ -40,6 +40,10 @@ function uint32:set_raw(x)
     return self
 end
 
+function uint32:set(a)
+    return self:set_raw(a.value)
+end
+
 function uint32.create_raw(x)
     local instance = uint32.create()
     if instance.value ~= x then
@@ -61,7 +65,7 @@ function uint32:set_number(n)
 end
 
 function uint32:add_raw(y)
-    self.value = self.value + y
+    self:set_raw(self.value + y)
     return self
 end
 
@@ -81,7 +85,7 @@ function uint32:multiply_raw(y)
     for i = y, 0x0000.0001, -0x0000.0001 do
         acc = acc + x
     end
-    self.value = acc
+    self:set_raw(acc)
     return self
 end
 
@@ -204,6 +208,18 @@ function less_than(a, b)
     test(a < b, "" .. a .. " < " .. b)
 end
 
+function less_than_or_equal(a, b)
+    test(a <= b, "" .. a .. " <= " .. b)
+end
+
+function greater_than(a, b)
+    test(a > b, "" .. a .. " > " .. b)
+end
+
+function greater_than_or_equal(a, b)
+    test(a >= b, "" .. a .. " >= " .. b)
+end
+
 equal("0x0000.0000", uint32.create():to_string(true))
 equal("0x0000.0000", uint32.create_from_number(0):to_string(true))
 equal("0x0000.3039", uint32.create_from_number(12345):to_string(true))
@@ -214,6 +230,14 @@ equal("0x0000.fa00", (uint32.create_from_number(32000):add(uint32.create_from_nu
 equal("0x0000.fa00", (uint32.create_from_number(32000):multiply(uint32.create_from_number(2))):to_string(true))
 equal("0x0001.7700", (uint32.create_from_number(32000):multiply_raw(0x0000.0003)):to_string(true))
 
+local n = uint32.create_raw(0x1234.5678)
+equal("0x1234.5678", n:to_string(true))
+local m = uint32.create_raw(0x8765.4321)
+equal("0x8765.4321", m:to_string(true))
+n:set(m)
+m:add_number(1)
+equal("0x8765.4321", n:to_string(true))
+
 equal(uint32.create_from_number(32000), uint32.create_from_number(32000))
 equal(uint32.create_from_number(32000):multiply(uint32.create_from_number(2)), uint32.create_from_number(2):multiply(uint32.create_from_number(32000)))
 
@@ -221,12 +245,21 @@ less_than(uint32.create_from_number(32000), uint32.create_from_number(32001))
 less_than(uint32.create_from_number(32768), uint32.create_from_number(32768):add(uint32.create_from_number(1)))
 less_than(uint32.create_from_number(32000):multiply_raw(0x0000.0002), uint32.create_from_number(2):multiply(uint32.create_from_number(32000)):add(uint32.create_from_number(1)))
 
+less_than_or_equal(uint32.create_from_number(32000), uint32.create_from_number(32001))
+less_than_or_equal(uint32.create_from_number(32000), uint32.create_from_number(32000))
+
+greater_than(uint32.create_from_number(32001), uint32.create_from_number(32000))
+greater_than_or_equal(uint32.create_from_number(32001), uint32.create_from_number(32000))
+greater_than_or_equal(uint32.create_from_number(32000), uint32.create_from_number(32000))
+
 equal("0", uint32.create_from_number():to_string())
 equal("65536", (uint32.create_from_number(2):multiply(uint32.create_from_number(1):add(uint32.create_from_number(32767)))):to_string())
 
 local v = uint32.create_raw(0x000F.423F)
 equal("999999", v:to_string())
-equal("999999", v:to_string())
+v:add_number(1)
+equal("1000000", v:to_string())
+v = uint32.create_raw(0x000F.423F)
 equal("1999998", (uint32.create_from_number(2):multiply(v)):to_string())
 
 -- 157070 == 123456 + (14 + 1200 * 28)
