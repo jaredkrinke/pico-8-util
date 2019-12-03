@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
 -- unsigned 32-bit integer arithmetic, formatting
--- supports comparison (==, <), formatting (.., to_string), and mutation (set, , add, multiply -- with _raw, _number variants)
+-- supports comparison (==, <), formatting (.., to_string), mutation (set, , add, multiply -- with _raw, _number variants), serializing (to_bytes)
 uint32 = {}
 uint32_mt = {
     __index = uint32,
@@ -172,6 +172,14 @@ function uint32:to_string(raw)
     end
 end
 
+function uint32:to_bytes()
+    local value = self.value
+    return band(0xff, shl(value, 16)),
+        band(0xff, shl(value, 8)),
+        band(0xff, value),
+        band(0xff, lshr(value, 8))
+end
+
 -- tests
 local total = 0
 local passed = 0
@@ -220,6 +228,12 @@ equal("1999998", (uint32.create_from_number(2):multiply(v)):to_string())
 -- 157070 == 123456 + (14 + 1200 * 28)
 equal("157070", uint32.create_raw(0x0001.e240):add(uint32.create_from_number(14):add(uint32.create_from_number(1200):multiply_raw(0x0000.001c))):to_string())
 equal("157070", uint32.create_raw(0x0001.e240):add_number(14):add(uint32.create_from_number(1200):multiply_number(28)):to_string())
+
+local a, b, c, d = uint32.create_raw(0x1234.5678):to_bytes()
+equal(0x78, a)
+equal(0x56, b)
+equal(0x34, c)
+equal(0x12, d)
 
 printh("Tests passed: " .. passed .. "/" .. total)
 
