@@ -23,6 +23,7 @@ function comm_send(bytes)
 end
 
 function comm_receive()
+    -- todo: consider setting the top bit to indicate server response instead of client request
     local bytes = {}
     local size = comm_gpio_read(comm_gpio.size)
     local index = comm_gpio.base
